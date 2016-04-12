@@ -60,8 +60,26 @@ final class PhutilGitHubAuthAdapter extends PhutilOAuthAuthAdapter {
 
     list($body) = $future->resolvex();
 
+    $uri = new PhutilURI('https://api.github.com/user/emails');
+    $uri->setQueryParam('access_token', $this->getAccessToken());
+
+    $future = new HTTPSFuture($uri);
+
+    // NOTE: GitHub requires a User-Agent string.
+    $future->addHeader('User-Agent', __CLASS__);
+
+    list($emails_body) = $future->resolvex();
+
     try{
-      return phutil_json_decode($body);
+      $oauthData = phutil_json_decode($body);
+      $emails = phutil_json_decode($emails_body);
+      foreach ($emails as $email_result){
+        if ($email_result['primary'] && $email_result['verified']) {
+          $oauthData['email'] = $email_result['email'];
+          break;
+        }
+      }
+      return $oauthData;
     } catch (PhutilJSONParserException $ex) {
       throw new PhutilProxyException(
         pht('Expected valid JSON response from GitHub account data request.'),
