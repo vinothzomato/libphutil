@@ -74,7 +74,7 @@ final class PhutilGitHubAuthAdapter extends PhutilOAuthAuthAdapter {
       $oauthData = phutil_json_decode($body);
       $emails = phutil_json_decode($emails_body);
       foreach ($emails as $email_result){
-        if ($email_result['primary'] && $email_result['verified']) {
+        if ($email_result['verified'] && strpos($email_result['email'],'@zomato.com') !== false) { // hardcoded for zomato
           $oauthData['email'] = $email_result['email'];
           break;
         }
